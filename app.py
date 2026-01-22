@@ -4,7 +4,7 @@ import pandas as pd
 import time
 
 # ==========================================
-# 1. PAGE CONFIG & SOPHISTICATED CSS
+# 1. PAGE CONFIG & HIGH-CONTRAST CSS
 # ==========================================
 st.set_page_config(
     page_title="FinTrust | AI Loan System",
@@ -13,70 +13,68 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# This CSS does the heavy lifting for the "Glassmorphism" look
+# FIXED CSS FOR READABILITY
 st.markdown("""
     <style>
-    /* BACKGROUND IMAGE */
+    /* 1. BACKGROUND WITH DARK OVERLAY (Fixes readability) */
     .stApp {
-        background-image: url("https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=2832&auto=format&fit=crop");
+        background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                    url("https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=2832&auto=format&fit=crop");
         background-size: cover;
         background-position: center;
-        background-repeat: no-repeat;
         background-attachment: fixed;
     }
 
-    /* GLASSMORPHISM CONTAINER CLASS */
+    /* 2. DARK GLASS CONTAINER (High Contrast) */
     .glass-container {
-        background: rgba(255, 255, 255, 0.15);
-        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
+        background-color: rgba(0, 0, 0, 0.65); /* Darker background for text pop */
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         border-radius: 15px;
-        border: 1px solid rgba(255, 255, 255, 0.18);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         padding: 25px;
         margin-bottom: 20px;
-        color: white;
+        color: #ffffff; /* Bright White Text */
     }
 
-    /* INPUT WIDGETS STYLING */
+    /* 3. INPUT WIDGETS STYLING */
+    /* Slider Color */
     .stSlider > div > div > div > div {
         background-color: #00d4ff !important;
     }
-    .stRadio > label, .stSelectbox > label, .stNumberInput > label {
-        color: white !important;
-        font-weight: bold;
+    /* Make Labels Bright White */
+    .stRadio > label, .stSelectbox > label, .stNumberInput > label, .stSlider > label {
+        color: #ffffff !important;
+        font-weight: 600;
         font-size: 1.1rem;
+        text-shadow: 0px 2px 4px rgba(0,0,0,0.8); /* Shadow for readability */
     }
     
-    /* CRAZY BUTTON STYLING */
+    /* 4. BUTTON STYLING */
     .stButton > button {
         background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
         color: white;
         border: none;
         padding: 15px 32px;
-        text-align: center;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 16px;
+        font-size: 18px;
         font-weight: bold;
-        margin: 4px 2px;
-        cursor: pointer;
         border-radius: 50px;
-        transition: 0.3s;
-        box-shadow: 0 0 15px #00d2ff;
+        box-shadow: 0 0 15px rgba(0, 210, 255, 0.5);
+        width: 100%;
     }
     .stButton > button:hover {
-        transform: scale(1.05);
-        box-shadow: 0 0 25px #00d2ff;
+        transform: scale(1.02);
+        box-shadow: 0 0 25px rgba(0, 210, 255, 0.8);
     }
 
-    /* TEXT COLORS */
-    h1, h2, h3, p {
-        color: white !important;
-        text-shadow: 2px 2px 4px #000000;
+    /* 5. TEXT & HEADERS */
+    h1, h2, h3, h4, p {
+        color: #ffffff !important;
+        text-shadow: 2px 2px 10px rgba(0,0,0,1); /* Deep shadow */
     }
     
-    /* HIDE DEFAULT HEADER */
+    /* Hide Default Streamlit Header */
     header {visibility: hidden;}
     </style>
 """, unsafe_allow_html=True)
@@ -99,33 +97,31 @@ model, scaler, le_self_emp = load_models()
 # ==========================================
 # 3. HEADER
 # ==========================================
-st.markdown('<h1 style="text-align: center; font-size: 3.5rem;">💎 FinTrust AI</h1>', unsafe_allow_html=True)
-st.markdown('<p style="text-align: center; font-size: 1.2rem; opacity: 0.8;">Next-Gen Instant Loan Approval System</p>', unsafe_allow_html=True)
+st.markdown('<h1 style="text-align: center; font-size: 4rem; margin-bottom: 0;">💎 FinTrust AI</h1>', unsafe_allow_html=True)
+st.markdown('<p style="text-align: center; font-size: 1.3rem; margin-top: -10px; color: #ccc !important;">Next-Gen Instant Loan Approval System</p>', unsafe_allow_html=True)
 
-st.markdown("---")
+st.write("") # Spacer
 
 # ==========================================
-# 4. GLASS INTERFACE (INPUTS)
+# 4. DARK GLASS INTERFACE (INPUTS)
 # ==========================================
 
-# We use HTML injection to wrap Streamlit widgets in our 'glass-container' class
 st.markdown('<div class="glass-container"><h3>🎛️ Control Panel</h3>', unsafe_allow_html=True)
 
 col1, col2 = st.columns(2)
 
 with col1:
     st.markdown("#### 💰 Financials")
-    # SLIDERS for Money (As requested)
     income = st.slider("Annual Income ($)", min_value=1000, max_value=20000, value=5000, step=500)
+    st.write("")
     loan_amt = st.slider("Loan Amount Request ($K)", min_value=10, max_value=500, value=120, step=5)
 
 with col2:
     st.markdown("#### 👤 Profile Details")
     credit_display = st.radio("Credit History", ["No Outstanding Debt (Clean)", "History of Default (Risky)"])
-    st.write("") # Spacer
+    st.write("")
     self_emp_display = st.selectbox("Employment Type", ["Salaried (Standard)", "Self-Employed (Freelance/Biz)"])
 
-# Close the glass container div
 st.markdown('</div>', unsafe_allow_html=True)
 
 # Process Inputs
@@ -135,57 +131,52 @@ self_emp_val = le_self_emp.transform(["Yes" if "Self" in self_emp_display else "
 # ==========================================
 # 5. ACTION & RESULTS
 # ==========================================
-st.write("")
 _, btn_col, _ = st.columns([1, 1, 1])
 
 with btn_col:
-    # The big glowing button
     analyze = st.button("✨ RUN AI PREDICTION ✨")
 
 if analyze:
-    # 1. Loading Animation
     with st.spinner("🤖 AI is analyzing credit vectors..."):
-        time.sleep(1.5) # Fake delay for dramatic effect
+        time.sleep(1.0)
     
-    # 2. Prepare Data
     input_data = pd.DataFrame([[income, loan_amt, credit_val, self_emp_val]], 
                               columns=['ApplicantIncome', 'LoanAmount', 'Credit_History', 'Self_Employed'])
     
-    # 3. Predict
     input_scaled = scaler.transform(input_data)
     prediction = model.predict(input_scaled)[0]
     probability = model.predict_proba(input_scaled)[0]
 
-    # 4. Display Results (Glass Modal)
+    # Results Modal
     if prediction == 1:
         st.balloons()
         st.markdown(f"""
-            <div class="glass-container" style="border: 2px solid #00ff00; text-align: center;">
-                <h1 style="color: #00ff00 !important; font-size: 4rem; text-shadow: 0 0 20px #00ff00;">ACCEPTED</h1>
+            <div class="glass-container" style="border: 2px solid #00ff00; background-color: rgba(0, 50, 0, 0.7); text-align: center;">
+                <h1 style="color: #4dfc4d !important; font-size: 4rem;">ACCEPTED</h1>
                 <p style="font-size: 1.5rem;">Confidence Score: <b>{probability[1]:.1%}</b></p>
                 <hr style="border-color: rgba(255,255,255,0.2);">
                 <p>The AI has determined this applicant is <b>Safe</b> for lending.</p>
             </div>
             """, unsafe_allow_html=True)
         
-        # Metric Cards
+        # Metrics
         m1, m2, m3 = st.columns(3)
         m1.metric("Income Coverage", "High", "24%")
         m2.metric("Risk Factor", "Low", "-12%")
-        m3.metric("Approval Tier", "Premium", "Platinum")
+        m3.metric("Approval Tier", "Platinum", "Tier 1")
 
     else:
-        st.snow() # Snow for "Cold/Rejected" feeling
+        st.snow()
         st.markdown(f"""
-            <div class="glass-container" style="border: 2px solid #ff4444; text-align: center;">
-                <h1 style="color: #ff4444 !important; font-size: 4rem; text-shadow: 0 0 20px #ff0000;">REJECTED</h1>
+            <div class="glass-container" style="border: 2px solid #ff4444; background-color: rgba(50, 0, 0, 0.7); text-align: center;">
+                <h1 style="color: #ff6b6b !important; font-size: 4rem;">REJECTED</h1>
                 <p style="font-size: 1.5rem;">Risk Probability: <b>{probability[0]:.1%}</b></p>
                 <hr style="border-color: rgba(255,255,255,0.2);">
                 <p>The AI has flagged this application as <b>High Risk</b>.</p>
             </div>
             """, unsafe_allow_html=True)
             
-        # Metric Cards (Negative)
+        # Metrics
         m1, m2, m3 = st.columns(3)
         m1.metric("Income Coverage", "Low", "-40%", delta_color="inverse")
         m2.metric("Risk Factor", "Critical", "+85%", delta_color="inverse")
