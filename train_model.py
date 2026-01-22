@@ -2,57 +2,64 @@ import pandas as pd
 import numpy as np
 import joblib
 from sklearn.svm import SVC
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
 
 def train():
-    print("⏳ Loading data...")
+    print("⏳ Loading and Balancing Data...")
+    
     # 1. Load Data
-    df = pd.read_csv('data/loan_approval.csv')
-    
-    # 2. Data Cleaning (Handling missing values based on your dataset)
-    df['Gender'] = df['Gender'].fillna(df['Gender'].mode()[0])
-    df['Married'] = df['Married'].fillna(df['Married'].mode()[0])
-    df['Dependents'] = df['Dependents'].fillna(df['Dependents'].mode()[0])
-    df['Self_Employed'] = df['Self_Employed'].fillna(df['Self_Employed'].mode()[0])
-    df['LoanAmount'] = df['LoanAmount'].fillna(df['LoanAmount'].median())
-    df['Credit_History'] = df['Credit_History'].fillna(df['Credit_History'].mode()[0])
-    
-    # 3. Feature Selection
-    # We will use 4 main features for the app
-    # (Note: In a real app, you might use more, but we keep it simple for the UI)
-    features = ['ApplicantIncome', 'LoanAmount', 'Credit_History', 'Self_Employed']
-    
-    # Encoding 'Self_Employed' (Yes/No -> 1/0)
-    le_self_emp = LabelEncoder()
-    df['Self_Employed'] = le_self_emp.fit_transform(df['Self_Employed'])
-    
-    X = df[features]
-    
-    # Target encoding (Y/N -> 1/0)
-    # Check for the specific column name in your CSV
-    target_col = 'Loan_Status' if 'Loan_Status' in df.columns else 'Loan_Status (Approved)'
-    df[target_col] = df[target_col].map({'Y': 1, 'N': 0})
-    y = df[target_col]
+    try:
+        df = pd.read_csv('data/loan_approval.csv')
+    except FileNotFoundError:
+        print("❌ Error: 'loan_approval.csv' not found in 'data/' folder.")
+        return
 
-    # 4. Scaling (Crucial for SVM)
-    print("⚖️  Scaling features...")
+    # 2. Critical Data Cleaning
+    # Fill numbers with Median (Standard practice)
+    df['LoanAmount'] = df['LoanAmount'].fillna(df['LoanAmount'].median())
+    df['ApplicantIncome'] = df['ApplicantIncome'].fillna(df['ApplicantIncome'].median())
+    df['Credit_History'] = df['Credit_History'].fillna(0.0) # Assume BAD credit if missing (Safety first)
+    df['Self_Employed'] = df['Self_Employed'].fillna('No')
+
+    # 3. Target Encoding
+    target_col = 'Loan_Status' if 'Loan_Status' in df.columns else 'Loan_Status (Approved)'
+    df['Target'] = df[target_col].map({'Y': 1, 'N': 0})
+
+    # 4. Feature Selection
+    # We strictly use the features available in the UI
+    X = df[['ApplicantIncome', 'LoanAmount', 'Credit_History']]
+    
+    # Encode Self_Employed
+    le_emp = LabelEncoder()
+    df['Self_Employed_Code'] = le_emp.fit_transform(df['Self_Employed'])
+    X['Self_Employed'] = df['Self_Employed_Code']
+    
+    y = df['Target']
+
+    # 5. Scaling (The most important step for Income vs Loan comparison)
+    print("⚖️  Scaling Features...")
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    # 5. Training
-    print("🧠 Training SVM Model (RBF Kernel)...")
-    model = SVC(kernel='rbf', probability=True, random_state=42)
+    # 6. Training with STRICTER Rules
+    print("🧠 Training SVM (Balanced Mode)...")
+    
+    # class_weight='balanced': Forces model to respect "Rejections"
+    # C=0.8: Reduces overfitting to the "Always Yes" majority
+    model = SVC(kernel='rbf', C=0.8, probability=True, class_weight='balanced', random_state=42)
     model.fit(X_scaled, y)
 
-    # 6. Save the Model and Scaler
-    print("💾 Saving artifacts to 'models/' folder...")
+    # 7. Validation Report
+    print("\n📊 Model Performance:")
+    print(classification_report(y, model.predict(X_scaled)))
+
+    # 8. Save
     joblib.dump(model, 'models/svm_model.pkl')
     joblib.dump(scaler, 'models/scaler.pkl')
-    joblib.dump(le_self_emp, 'models/le_self_emp.pkl') # Save encoder too!
-    
-    print("✅ Done! You can now run 'app.py'.")
+    joblib.dump(le_emp, 'models/le_self_emp.pkl')
+    print("✅ Logic Fixed & Saved!")
 
 if __name__ == "__main__":
     train()
