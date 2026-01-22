@@ -15,7 +15,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for that "Glassmorphism" look
+# Custom CSS for "Glassmorphism"
 st.markdown("""
     <style>
     .stApp {
@@ -38,6 +38,10 @@ st.markdown("""
         background-color: rgba(0, 0, 0, 0.6) !important;
         backdrop-filter: blur(10px);
         border-right: 1px solid rgba(255,255,255,0.1);
+    }
+    /* Slider Color Styling */
+    .stSlider > div > div > div > div {
+        background-color: #00d2ff !important;
     }
     h1, h2, h3, h4, p, label { color: #ffffff !important; }
     .stButton > button {
@@ -62,14 +66,14 @@ except FileNotFoundError:
     st.stop()
 
 # ==========================================
-# 2. SIDEBAR INPUTS
+# 2. SIDEBAR INPUTS (With Sliders)
 # ==========================================
 with st.sidebar:
     st.header("🎛️ Application Controls")
     
-    # Using Number Inputs for precision
-    income = st.number_input("Annual Income ($)", min_value=1000, value=5000, step=500)
-    loan_amt = st.number_input("Loan Amount ($K)", min_value=10, value=120, step=10)
+    # SLIDERS added here
+    income = st.slider("Annual Income ($)", min_value=1000, max_value=50000, value=5000, step=500)
+    loan_amt = st.slider("Loan Amount ($K)", min_value=10, max_value=500, value=120, step=10)
     
     st.markdown("---")
     
@@ -80,15 +84,15 @@ with st.sidebar:
     run_btn = st.button("✨ RUN RISK ANALYSIS")
 
 # ==========================================
-# 3. HYBRID DECISION ENGINE (LOGIC FIX)
+# 3. HYBRID DECISION ENGINE
 # ==========================================
 
-# Metrics Display
+# Top Metrics Display
 ratio = (loan_amt * 1000) / income
 c1, c2, c3 = st.columns(3)
 c1.markdown(f'<div class="glass-card"><h4>Income</h4><h2>${income:,}</h2></div>', unsafe_allow_html=True)
 c2.markdown(f'<div class="glass-card"><h4>Loan Request</h4><h2>${loan_amt}k</h2></div>', unsafe_allow_html=True)
-c3.markdown(f'<div class="glass-card"><h4>Debt Ratio</h4><h2 style="color:{"#ff4444" if ratio > 15 else "#00ff00"}">{ratio:.1f}x</h2></div>', unsafe_allow_html=True)
+c3.markdown(f'<div class="glass-card"><h4>Debt Ratio</h4><h2 style="color:{"#ff4444" if ratio > 12 else "#00ff00"}">{ratio:.1f}x</h2></div>', unsafe_allow_html=True)
 
 if run_btn:
     st.write("---")
@@ -97,10 +101,7 @@ if run_btn:
     credit_val = 1.0 if "No Debt" in credit else 0.0
     emp_val = le_self_emp.transform(["Yes" if "Yes" in self_emp else "No"])[0]
     
-    # 2. LAYER 1: HARD KNOCKOUT RULES (Business Logic)
-    # If the user asks for 20x their income, we reject immediately.
-    # If credit is 0 (Default), we reject immediately.
-    
+    # 2. LAYER 1: HARD KNOCKOUT RULES
     rejection_reason = ""
     is_auto_reject = False
     
@@ -111,7 +112,7 @@ if run_btn:
         is_auto_reject = True
         rejection_reason = f"Loan amount is {ratio:.1f}x the annual income. Limit is 12x."
 
-    # 3. LAYER 2: AI MODEL (Only if Layer 1 passes)
+    # 3. LAYER 2: AI MODEL
     if not is_auto_reject:
         input_data = pd.DataFrame([[income, loan_amt, credit_val, emp_val]], 
                                   columns=['ApplicantIncome', 'LoanAmount', 'Credit_History', 'Self_Employed'])
@@ -128,17 +129,17 @@ if run_btn:
         final_decision = "Approved" if prediction == 1 else "Rejected"
         confidence = probs[1] if prediction == 1 else probs[0]
     else:
-        # If auto-rejected, set values manually
+        # Auto-reject handling
         final_decision = "Rejected"
         confidence = 1.0
         prediction = 0
 
-    # 4. DISPLAY RESULTS
+    # 4. DISPLAY RESULTS (No Balloons/Snow)
     col_res, col_chart = st.columns([1, 1.5])
     
     with col_res:
         if final_decision == "Approved":
-            st.balloons()
+            # REMOVED st.balloons()
             st.markdown(f"""
                 <div class="glass-card" style="border: 2px solid #00ff00; background: rgba(0, 50, 0, 0.4);">
                     <h1 style="color: #4dfc4d !important;">ACCEPTED</h1>
@@ -148,7 +149,7 @@ if run_btn:
                 </div>
             """, unsafe_allow_html=True)
         else:
-            st.snow()
+            # REMOVED st.snow()
             st.markdown(f"""
                 <div class="glass-card" style="border: 2px solid #ff4444; background: rgba(50, 0, 0, 0.4);">
                     <h1 style="color: #ff6b6b !important;">REJECTED</h1>
